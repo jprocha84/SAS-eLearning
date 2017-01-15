@@ -99,4 +99,54 @@
 
 /********************************************************
 	Controlling When a Record Loads
-*********************************************************/	
+*********************************************************/
+	data salesQ;
+		infile "&path/sales.dat";
+		input SaleID $4. @6 Location $3. @;
+		if Location='USA' then 
+			input @10 SaleDate mmddyy10.
+				  @20 Amount 7.;
+		else if Location='EUR' then
+			input @10 SaleDate date9.
+				  @20 Amount commax7.;
+	run;
+	proc print data=salesQ;
+	run;
+	* If we only need Europe data;
+	data EuropeQ1;
+		infile "&path/sales.dat";
+		input @6 Location $3. @;
+		if Location='EUR';
+			input @1 SaleID $4.
+				  @10 SaleDate date9.
+				  @20 Amount commax7.;
+	run;
+	* Practice; 
+	data au_sales us_sales;
+		drop Country;
+	    infile "&path/sales3.dat";
+	    input @1 Employee_ID 6.
+	          @21 Last_Name $18.
+	          @43 Job_Title $20.;
+	    input @10 Country $2. @;
+	    if Country = 'AU' then do;
+	       input @1 Salary dollarx8.
+	             @24 Hire_Date ddmmyy10.;
+	        output AU_sales;
+	    end;
+	    else if Country = 'US' then do;
+	        input @1 Salary dollar8.
+	              @24 Hire_Date mmddyy10.;
+	        output US_sales;
+	     end;
+	run;
+	
+	title 'Australian Sales Staff';
+	proc print data=au_sales;
+	run;
+	
+	title 'US Sales Staff';
+	proc print data=us_sales;
+	run;
+	title;
+	
