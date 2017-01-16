@@ -10,7 +10,7 @@
 			RDS: The ouput rolled up dataset
 *********************************/
 %macro TBRollup(TDS, IDVar, TimeVar, TypeVar, NChars, Value, RDS);
-	* Step 1;
+
 	proc sort data=&TDS;
 		by &IDVar &TimeVar &TypeVar;
 	run;
@@ -58,8 +58,8 @@
 	 	drop &TypeVar _Name_;
 	run;
 	
-	/*proc datasets library=work nodetails;
+	proc datasets library=work nodetails;
 		delete Temp1 Types %do i=1 %to &N; _R_&i %end; ;
-	run;*/
+	run;
 	quit;
 %mend;

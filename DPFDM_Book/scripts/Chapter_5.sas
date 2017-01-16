@@ -2,8 +2,8 @@
 	Chapter 5 - Data Acquisition and Integration
 *************************************************/
 	%let macros=/folders/myshortcuts/SAS_Entrenamiento/DPFDM_Book/macros/;
-	%include "&macros.TBRollup.sas";
 
+	* 5.4 Data Rollup;
 	data Transaction;
 		informat CustID $10.;
 		informat TransDate date9.;
@@ -25,6 +25,7 @@
 			88888 09Jul2013 -1254.48 Checking
 			88888 10Aug2013 400.00 Savings
 			88888 11Aug2013 500.00 Checking
+			88888 13Aug2013 300.00 Checking
 		;
 	run;
 	
@@ -71,6 +72,7 @@
 	run;
 		
 	* Calling the Macro TBRollup;
+	%include "&macros.TBRollup.sas";
 	%let IDVar = CustID;
 	%let TimeVar = Month;
 	%let TypeVar = AccountType;
@@ -80,7 +82,9 @@
 	%let RDS = Rollup;
 	
 	%TBRollup(&TDS, &IDVar, &TimeVar, &TypeVar, &NChars, &Value, &RDS);
-	
+	proc print data=&RDS;
+	run;
+	* Revisando variable;
 	data _null_;
 		set Types nobs=Ncount;
 		call symput('Cat_'||left(_n_),AccountType);
@@ -90,3 +94,84 @@
 			%put _ALL_;
 		end;
 	run;
+	
+	* 5.5 Rollup with Sums, Averages and Counts;
+	%include "&macros.ABRollup.sas";
+	%let IDVar = CustID;
+	%let TimeVar = Month;
+	%let TypeVar = AccountType;
+	%let Value = Amount;
+	%let NChars = 1;
+	%let TDS = Trans;
+	%let RDS = Rollup;
+	
+	%ABRollup(&TDS, &IDVar, &TimeVar, &TypeVar, &NChars, &Value, &RDS);
+	proc print data=&RDS;
+	run;
+	
+	* 5.6 Calculation of the Mode;
+	%include "&macros.VarMode.sas";
+	%let TransDS = Trans;
+	%let XVar = Month;
+	%let IDVar = CustID;
+	%let OutDS = ModeDS;
+	%VarMode(&TransDS, &XVar, &IDVar, &OutDS);
+	proc print data=ModeDS;
+	run;
+	
+	* 5.7.1 Merging;
+	data left;
+		input ID Age Status $;
+		datalines;
+		1 30 Gold
+		2 20 .
+		4 40 Gold
+		5 50 Silver
+		;
+	run;
+	data right;
+		input ID Balance Status $;
+		datalines;
+		2 3000 Gold
+		4 4000 Silver
+		;
+	run;
+	data Both;
+		merge Left Right;
+		by ID;
+	run;
+	proc print data=Both;
+	run;
+	
+	%include "&macros.MergeDS.sas";
+	%let List=Left Right;
+	%let IDVar=ID;
+	%let ALL=Both;
+	%MergeDS(&List, &IDVar, &ALL);
+	
+	* 5.7.2 Concatenation;
+	data top;
+		input ID Age Status $;
+		datalines;
+		1 30 Gold
+		2 20 .
+		3 30 Silver
+		4 40 Gold
+		5 50 Silver
+		;
+	run;
+	data bottom;
+		input ID Balance Status $;
+		datalines;
+		6 6000 Gold
+		7 7000 Silver
+		;
+	run;
+	data both;
+		set top bottom;
+	run;
+	
+	%include "&macros.ConcatDS.sas";
+	%let List=Top Bottom;
+	%let ALL=Both;
+	%ConcatDS(&List, &ALL);
