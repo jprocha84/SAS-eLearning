@@ -1,5 +1,6 @@
 /********************************************
 	Extracting and Transforming Character Values
+	- https://support.sas.com/edu/OLTRN/ECPRG293/m434/m434_5_a_sum.htm
 *********************************************/
 	data charities(drop=Len);
 		length ID $ 5;
@@ -63,4 +64,75 @@
 /********************************************
 	Finding and Modifying Character Values
 *********************************************/
+	data correct;
+		set orion.clean_up;
+		if find(Product,'Mittens','I')>0 then do;
+			substr(Product_ID,9,1)='5';
+			Product=tranwrd(Product,'Luci','Lucky');
+		end;
+		Product=propcase(Product);
+		Product_ID=compress(Product_ID);
+	run;
+	proc print data=correct;
+	run;
 	
+	* Practice 1;
+	data names(keep=New_Name Name Gender);
+		set orion.customers_ex5;
+		FMName = propcase(scan(Name,2,','));
+		LName =  propcase(scan(Name,1,','));
+		if Gender='M' then do;
+			New_Name = catx(' ','Mr.',FMName,LName);
+		end;
+		else do;
+			New_Name = catx(' ','Ms.',FMName,LName);
+		end;
+	run;
+	proc print data=names;
+	run;
+	
+	data silver gold platinum;
+		set orion.customers_ex5;
+		keep Customer_ID Name Country;
+		Customer_ID=tranwrd(Customer_ID,'-00-','-15-');
+		if find(Customer_ID,'silver','I')>0 then do;
+			output silver;
+		end;
+		else if find(Customer_ID,'gold','I')>0 then do;
+			output gold;
+		end;
+		else if find(Customer_ID,'platinum','I')>0 then do;
+			output platinum;
+		end;
+	run;
+	proc print data=silver;
+		title 'Silver-Level Customer';
+	run;
+	proc print data=gold;
+		title 'Gold-Level Customer';
+	run;
+	proc print data=platinum;
+		title 'Platinum-Level Customer';
+	run;
+	
+	* Practice 2;
+	data split;
+		set orion.employee_donations;
+		PctLoc=find(Recipients,'%');
+		if PctLoc > 1 then do;
+			Charity=substr(Recipients,1,PctLoc);
+			output;
+			Charity=substr(Recipients,PctLoc+3);
+			output;
+		end;
+		else do;
+	    	Charity=trim(Recipients)!!' 100%';
+	     	output;
+	   	end;
+	   	drop PctLoc Recipients;
+	run;
+	title 'Charity Contributions for each Employee';
+	proc print data=work.split noobs;
+	   var Employee_ID Charity;
+	run;
+	title;
