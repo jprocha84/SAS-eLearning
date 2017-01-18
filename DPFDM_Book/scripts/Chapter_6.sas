@@ -3,7 +3,7 @@
 *************************************************/
 	%let macros=/folders/myshortcuts/SAS_Entrenamiento/DPFDM_Book/macros/;
 		
-	* 6.3 Dataset Schema Checks;
+	*** 6.3 Dataset Schema Checks ****;
 	proc sql;
 		create table TA as 
 			select name, type from dictionary.columns
@@ -28,4 +28,30 @@
 	
 	proc print data=&Result;
 		%put _All_;
+	run;
+	
+	* 6.3.2 Variable Types;
+	data SS;
+		x='1';output;
+		x='a';output;
+	run;
+	data NN;
+		set SS;
+		y=input(x,best10.);
+		drop x;
+	run;
+	
+	*** 6.4 Nominal Variables ****;
+	
+	* 6.4.1 Testing the presence of all categories.;
+	%include "&macros.CatCompare.sas";
+	%let Base=Transaction;
+	%let Sample=Trans;
+	%let Var=AccountType;
+	%let V_Result=OutDS;
+	%global FlagResult;
+	%CatCompare(&Base, &Sample, &Var, &V_Result, FlagResult);
+	
+	proc print data=&V_Result;
+		%put &FlagResult;
 	run;
